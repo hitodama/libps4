@@ -7,7 +7,7 @@
 
 #include <internal/pushpop.h>
 
-void resolveModuleSymbol(int64_t *module, void **symbol, char *moduleName, char *symbolName);
+int resolveModuleAndSymbol(int64_t *module, void **symbol, char *moduleName, char *symbolName);
 uint64_t kerncall();
 
 //#define Stringify(n) #n
@@ -95,8 +95,6 @@ uint64_t kerncall();
 				xchg %rax, %r11 \n \
 				test %r11, %r11 \n \
 				je .L"#fn"Resolve \n \
-				cmp $-1, %r11 \n \
-				je .L"#fn"Error \n \
 				jmp *%r11 \n \
 				.L"#fn"Resolve: \n \
 					call pushall \n \
@@ -105,12 +103,14 @@ uint64_t kerncall();
 					movabs $"#libName", %rdx \n \
 					movabs $"#fnName", %rcx \n \
 					xor %rax, %rax \n \
-					call resolveModuleSymbol \n \
+					call resolveModuleAndSymbol \n \
+					mov %rax, %r11 \n \
 					call popall \n \
+					cmp $-1, %r11 \n \
+					je .L"#fn"Error \n \
 					jmp "#fn" \n \
 				.L"#fn"Error: \n \
 					mov $-1, %rax \n \
-					movabs %rax, "#address" \n \
 					ret \n \
 			.size "#fn", .-"#fn" \n \
 			.popsection \n \
