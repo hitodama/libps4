@@ -8,8 +8,8 @@ SDIR	:=	source
 IDIR	:=	include
 LDIR	:=	lib
 
-LIBPS4CFLAGS += -D"LibPS4SyscallDirect"
-#LIBPS4CFLAGS += -D"LibPS4SyscallWrapped"
+#LIBPS4CFLAGS += -D"LibPS4SyscallDirect"
+LIBPS4CFLAGS += -D"LibPS4SyscallWrapped"
 
 CFLAGS	:=	$(LIBPS4CFLAGS) -I$(IDIR) -O3 -Wall -pedantic -std=c11 -m64 -mcmodel=large -ffreestanding -nostdlib -nostdinc -fno-builtin -fPIC -target x86_64-scei-ps4-elf
 SFLAGS	:=	-target x86_64-scei-ps4-elf -m64
