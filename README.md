@@ -7,9 +7,9 @@ libps4
 
 The libps4 is a generated (otherwise read-only) repository which can be cloned to build libps4.
 
-This is an initial commit. It provides rouchgly 1300 mostly libc and posix functions and the corresponding headers.
+This is an initial commit. It provides rouchgly 1300 mostly libc and posix functions and the corresponding headers. It also includes the initial findings by the community towards SCE modules.
 
-If you are inteerested in contributing to libps4, please see libps4-generator, libps4-std-include, libps4-sce-include and libps4-boilerplate for more.
+If you are interrested in contributing to or seek more infos towards libps4, please see [libps4-generator](https://github.com/ps4dev/libps4-generator), [libps4-std-include](https://github.com/ps4dev/libps4-std-include), [libps4-sce-include](https://github.com/ps4dev/libps4-sce-include) and [libps4-boilerplate](https://github.com/ps4dev/libps4-boilerplate) for more. Feedback or help is very welcome. Don't consider the repos to stable though. Esp. over the next week.
 
 ##Internals, Hints and Warnings
 
