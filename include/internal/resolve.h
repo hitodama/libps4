@@ -82,9 +82,37 @@ uint64_t kerncall();
 		FunctionNamed_(lib, libName, fn, fnName, address)
 #endif
 
+#ifndef LibPS4EnableManualResolution
+	#define FunctionResolver(lib, libName, fn, fnName, address)
+	#define FunctionResolve(fn)
+#endif
+
+#ifndef FunctionResolve
+	#define FunctionResolve(fn) extern int fn##Resolve(); fn##Resolve();
+#endif
+
+#ifndef FunctionResolver
+	#define FunctionResolver(lib, libName, fn, fnName, address) \
+		__asm__(" \
+			.pushsection .text \n \
+			.global "#fn"Resolve \n \
+			.type "#fn"Resolve, @function \n \
+			"#fn"Resolve: \n \
+				movabs $"#lib", %rdi \n \
+				movabs $"#address", %rsi \n \
+				movabs $"#libName", %rdx \n \
+				movabs $"#fnName", %rcx \n \
+				xor %rax, %rax \n \
+				jmp resolveModuleAndSymbol \n \
+			.size "#fn"Resolve, .-"#fn"Resolve \n \
+			.popsection \n \
+		");
+#endif
+
 #ifndef FunctionNamed_
 	#define FunctionNamed_(lib, libName, fn, fnName, address) \
 		FunctionNameData(fnName, fn) \
+		FunctionResolver(lib, libName, fn, fnName, address) \
 		__asm__(" \
 			.pushsection .text \n \
 			.global "#fn" \n \
@@ -94,9 +122,9 @@ uint64_t kerncall();
 				movabs "#address", %rax \n \
 				xchg %rax, %r11 \n \
 				test %r11, %r11 \n \
-				je .L"#fn"Resolve \n \
+				je .L"#fn"ResolveInternal \n \
 				jmp *%r11 \n \
-				.L"#fn"Resolve: \n \
+				.L"#fn"ResolveInternal: \n \
 					call pushall \n \
 					movabs $"#lib", %rdi \n \
 					movabs $"#address", %rsi \n \
@@ -106,11 +134,10 @@ uint64_t kerncall();
 					call resolveModuleAndSymbol \n \
 					mov %rax, %r11 \n \
 					call popall \n \
-					cmp $-1, %r11 \n \
-					je .L"#fn"Error \n \
+					test %r11, %r11 \n \
+					js .L"#fn"Error \n \
 					jmp "#fn" \n \
 				.L"#fn"Error: \n \
-					mov $-1, %rax \n \
 					ret \n \
 			.size "#fn", .-"#fn" \n \
 			.popsection \n \
