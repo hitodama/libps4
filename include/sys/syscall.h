@@ -447,16 +447,10 @@
 #define	SYS_rctl_remove_rule	529
 #define	SYS_posix_fallocate	530
 
-/* wrapper names, provide to enable easy switching */
-
 #define	SYS_sceKernelDlsym	591
 #define	SYS_sceKernelGetModuleList	592
 #define	SYS_sceKernelGetModuleInfo	593
 //#_define	SYS_sceKernelLoadStartModule 594 ?!?
 #define	SYS_sceKernelStopUnloadModule 595
 
-/* true names */
-
-#define	SYS_dlsym   591 // find and add "real" names
-
-#define	SYS_MAXSYSCALL	532 // change me
+#define	SYS_MAXSYSCALL	532
