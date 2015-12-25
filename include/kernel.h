@@ -1,6 +1,7 @@
 #pragma once
 
 #include "types/kernel.h"
+#include "stddef.h"
 #include "sys/types.h"
 
 int sceKernelAllocateDirectMemory(off_t searchStart, off_t searchEnd, size_t length, size_t alignment, int type, off_t *physicalAddressDestination);
@@ -27,3 +28,7 @@ void scePthreadYield(void);
 
 int sceKernelDlsym(int handle, const char *symbol, void **addr);
 int sceKernelGetModuleInfo(int handle, SceKernelModuleInfo *info);
+
+int sceKernelJitCreateAliasOfSharedMemory(int handle, int protection, int *destinationHandle);
+int sceKernelJitCreateSharedMemory(int flags, size_t size, int protection, int *destinationHandle);
+int sceKernelJitMapSharedMemory(int handle, int protection, void **destination);
