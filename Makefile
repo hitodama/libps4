@@ -78,6 +78,7 @@ $(TDIR):
 	@mkdir $@
 
 .PHONY: all clean
+.DEFAULT_GOAL := all
 
 all: $(TFILE)
 
