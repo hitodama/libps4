@@ -12,15 +12,12 @@ ifdef LIBPS4CFLAGS
 LibPS4Flags := $(LIBPS4CFLAGS)
 endif
 
-ifndef LibPS4Flags
-#LibPS4Flags := -D"LibPS4SyscallWrapped"
-LibPS4Flags := -D"LibPS4SyscallDirect"
-endif
-AssemblerFlags += -I$(LibPS4)/include
+#LibPS4Flags ?= -D"LibPS4SyscallWrapped"
+LibPS4Flags ?= -D"LibPS4SyscallDirect"
 
 ###################################
 
-include make/libps4.mk
+include $(CURDIR)/make/libps4.mk
 
 #generate_target <type> <module> <symbol> <header>
 define generateTarget
