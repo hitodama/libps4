@@ -3,16 +3,27 @@
 #include "stdint.h"
 #include "sys/time.h"
 
-typedef struct SceKernelModuleInfo {
-	size_t size; // 0x0
-	char name[32]; // 0x8
-	char padding1[0xe0]; // 0x28
-	void *codeBase; // 0x108
-	unsigned int codeSize; // 0x110
-	void *dataBase; // 0x118
-	unsigned int dataSize; // 0x120
-	char padding2[0x3c]; // 0x124
-} SceKernelModuleInfo;
+#ifndef MAP_TYPE
+	#define MAP_TYPE 0x0f
+#endif
+
+typedef struct SceKernelModuleSegmentInfo
+{
+    void *address;
+    uint32_t size;
+    int32_t prot;
+}
+SceKernelModuleSegmentInfo;
+
+typedef struct SceKernelModuleInfo
+{
+	size_t size;
+	char name[256];
+	SceKernelModuleSegmentInfo segmentInfo[4];
+	uint32_t segmentCount;
+	uint8_t fingerprint[20];
+}
+SceKernelModuleInfo;
 
 typedef struct timeval SceKernelTimeval;
 typedef unsigned int SceKernelUseconds;

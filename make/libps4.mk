@@ -14,7 +14,7 @@ SourcePath := source
 IncludePath := -I. -Iinclude
 LibPath := -L. -Llib
 BuildPath := build
-OutPath := bin
+OutPath ?= bin
 
 ###################################
 
@@ -86,20 +86,32 @@ dirp = @mkdir -p $(@D)
 
 ###################################
 
-assemble = $(Assembler) $(Sf) -c $< $(AssemblerFlags) -o $@
-compile = $(Compiler) $(Cf) -c $< $(CompilerFlags) -o $@
-link = $(Linker) $(Lf) $(CrtFile) $? $(LinkerFlags) $(Libraries) -o $@
-compileAndLink = $(Cf) $(Compiler) $? $(CompilerFlags) $(LinkerFlags) $(Libraries) -o $@
-archive = $(Archiver) $(ArchiverFlags) $@ $?
-
-###################################
-
+ifdef SourceFilesCForce
+SourceFilesC := $(SourceFilesCForce)
+else
 SourceFilesC += $(call findwildcard, $(SourcePath), *.c)
+endif
+SourceFilesC := $(filter-out $(SourceFilterC),$(SourceFilesC))
+
+ifdef SourceFilesSForce
+SourceFilesS := $(SourceFilesSForce)
+else
 SourceFilesS += $(call findwildcard, $(SourcePath), *.s)
+endif
+SourceFilesS := $(filter-out $(SourceFilterS),$(SourceFilesS))
+
 ObjectFiles	+=	$(patsubst $(SourcePath)/%.c, $(BuildPath)/%.c.o, $(SourceFilesC)) \
 				$(patsubst $(SourcePath)/%.s, $(BuildPath)/%.s.o, $(SourceFilesS))
 
 TargetFile ?= $(basename $(notdir $(CURDIR)))
+
+###################################
+
+assemble = $(Assembler) $(Sf) -c $< $(AssemblerFlags) -o $@
+compile = $(Compiler) $(Cf) -c $< $(CompilerFlags) -o $@
+link = $(Linker) $(Lf) $(CrtFile) $(ObjectFiles) $(LinkerFlags) $(Libraries) -o $@
+compileAndLink = $(Cf) $(Lf) $(Compiler) $? $(CompilerFlags) $(LinkerFlags) $(Libraries) -o $@
+archive = $(Archiver) $(ArchiverFlags) $@ $(ObjectFiles)
 
 ###################################
 
@@ -127,7 +139,7 @@ else ifeq ($(target), ps4-bin)
 else ifeq ($(target), )
 	include $(MakePath)/targets/ps4-elf.mk
 else
-$(error Specified target does not exist)
+	$(error Specified target does not exist)
 endif
 
 ###################################

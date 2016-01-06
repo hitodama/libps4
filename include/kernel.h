@@ -7,7 +7,6 @@
 int sceKernelAllocateDirectMemory(off_t searchStart, off_t searchEnd, size_t length, size_t alignment, int type, off_t *physicalAddressDestination);
 int sceKernelGetCurrentCpu(void);
 int sceKernelGettimeofday(SceKernelTimeval *tp);
-int sceKernelLoadStartModule(const char *name, size_t argc, const void *argv, unsigned int flags, int, int);
 int sceKernelMapDirectMemory(void **addr, size_t length, int protection, int flags, off_t start, size_t alignment);
 int sceKernelUsleep(unsigned int microseconds);
 int scePthreadCancel(ScePthread thread);
@@ -26,9 +25,12 @@ unsigned int sceKernelSleep(unsigned int seconds);
 void scePthreadExit(void *value);
 void scePthreadYield(void);
 
-int sceKernelDlsym(int handle, const char *symbol, void **addr);
-int sceKernelGetModuleInfo(int handle, SceKernelModuleInfo *info);
+int sceKernelLoadStartModule(const char *name, size_t argc, const void *argv, uint32_t flags, void *, int *result);
+int sceKernelDlsym(SceKernelModule handle, const char *symbol, void **address);
+int sceKernelGetModuleList(SceKernelModule *array, size_t size, size_t *available);
+int sceKernelGetModuleInfo(SceKernelModule handle, SceKernelModuleInfo *info);
+int sceKernelStopUnloadModule(SceKernelModule handle, size_t argc, const void *argv, uint32_t flags, void *, int *result);
 
-int sceKernelJitCreateAliasOfSharedMemory(int handle, int protection, int *destinationHandle);
 int sceKernelJitCreateSharedMemory(int flags, size_t size, int protection, int *destinationHandle);
+int sceKernelJitCreateAliasOfSharedMemory(int handle, int protection, int *destinationHandle);
 int sceKernelJitMapSharedMemory(int handle, int protection, void **destination);

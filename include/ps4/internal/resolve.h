@@ -1,43 +1,14 @@
-#ifndef LibPS4ResolveH
-#define LibPS4ResolveH
+#ifndef LibPS4InternalResolveH
+#define LibPS4InternalResolveH
 
 #include <stddef.h>
 #include <stdint.h>
 #include <sys/syscall.h>
 
 #include <ps4/internal/pushpop.h>
+#include <ps4/resolve.h>
 
-#ifndef PS4Inline
-	#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199409L
-		#define PS4Inline inline
-	#else
-		#ifdef __GNUC__
-			#define PS4Inline __inline__
-		#else
-			#define PS4Inline
-		#endif
-	#endif
-#endif
-
-typedef enum
-{
-	PS4ResolveStatusSuccess = 0,
-	PS4ResolveStatusInterceptContinue = 1,
-	PS4ResolveStatusInterceptFailure = -6,
-	PS4ResolveStatusArgumentError = -1,
-	PS4ResolveStatusKernelLoadError = -2,
-	PS4ResolveStatusLSMResolveError = -3,
-	PS4ResolveStatusModuleLoadError = -4,
-	PS4ResolveStatusFunctionResolveError = -5
-}
-PS4ResolveStatus;
-
-typedef PS4ResolveStatus (*PS4ResolveHandler)(char *moduleName, char *symbolName, int64_t *module, void **symbol, PS4ResolveStatus state);
-
-PS4ResolveStatus ps4ResolveModuleAndSymbol(char *moduleName, char *symbolName, int64_t *module, void **symbol);
-PS4ResolveHandler ps4ResolveSetErrorHandler(PS4ResolveHandler errorHandler);
-PS4ResolveHandler ps4ResolveSetPreHandler(PS4ResolveHandler preHandler);
-PS4ResolveHandler ps4ResolveSetPostHandler(PS4ResolveHandler postHandler);
+PS4ResolveStatus ps4ResolveModuleAndSymbol(char *moduleName, char *symbolName, int *module, void **symbol);
 
 uint64_t ps4Kerncall();
 
@@ -149,7 +120,7 @@ uint64_t ps4Kerncall();
 					mov %rax, %r11 \n \
 					call ps4Popall \n \
 					test %r11, %r11 \n \
-					js .L"#function"E \n \
+					jnz .L"#function"E \n \
 					jmp "#function" \n \
 				.L"#function"E: \n \
 					ret \n \
