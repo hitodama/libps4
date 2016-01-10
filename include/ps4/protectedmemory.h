@@ -1,4 +1,4 @@
-#ifdef LibPS4ProtectedMemoryH
+#ifndef LibPS4ProtectedMemoryH
 #define LibPS4ProtectedMemoryH
 
 #include <stddef.h>
