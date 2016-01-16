@@ -11,8 +11,8 @@ ObjectCopy ?= objcopy
 MakePath := $(dir $(lastword $(MAKEFILE_LIST)))
 
 SourcePath := source
-IncludePath := -I. -Iinclude
-LibPath := -L. -Llib
+IncludePath ?= -I. -Iinclude
+LibPath ?= -L. -Llib
 BuildPath := build
 OutPath ?= bin
 
