@@ -65,31 +65,30 @@ PS4ResolveStatus ps4ResolvePostIntercept(char *moduleName, char *symbolName, int
 	return PS4ResolveStatusInterceptFailure;
 }
 
-PS4ResolveStatus ps4Resolve(void *function) // FIXME: thread save
+// alter if ps4ResolveModuleAndSymbol changes
+PS4ResolveStatus ps4Resolve(void *function)
 {
-	PS4ResolveStatus s = PS4ResolveStatusFunctionResolveError;
-	PS4ResolveHandler t = NULL;
 	unsigned char *b = (unsigned char *)function;
 
-	char *moduleName = *(char **)(b + 30); // alter if resolve changes
+	char *moduleName = *(char **)(b + 30);
 	char *symbolName = *(char **)(b + 40);
 	int *module = (int *)(*(int **)(b + 50));
 	void **symbol = (void **)(*(void ***)(b + 60));
 
-	// check arbitrary bytes
-	if(*(b + 13) != 0x49 || *(b + 14) != 0x93)
-		return s;
+	/*
+ 		check arbitrary bytes
+		0:  49 89 c3 mov %rax,%r11
+		13: 49 93    xchg %rax,%r11
+		15: 4d 85 db test %r11,%r11
+		= function
+		kept below 15 to not overflow the size of syscalls ...
+	*/
+	if(*(b + 0) != 0x49 || *(b + 1) != 0x89 || *(b + 2) != 0xc3 ||
+		*(b + 13) != 0x49 || *(b + 14) != 0x93 ||
+		*(b + 15) != 0x4d) // || *(b + 16) != 0x85 || *(b + 17) != 0xdb)
+		return PS4ResolveStatusFunctionResolveError;
 
-	t = ps4ResolveSetPostHandler(ps4ResolvePostIntercept);
-	s = ps4ResolveModuleAndSymbol(moduleName, symbolName, module, symbol);
-	ps4ResolveSetPostHandler(t);
-
-	if(t == NULL)
-		return s;
-	else if((s = ps4ResolveCallHandler(ps4ResolvePostHandler, moduleName, symbolName, module, symbol, PS4ResolveStatusInterceptContinue)) != PS4ResolveStatusInterceptContinue)
-		return s;
-
-	return PS4ResolveStatusSuccess;
+	return ps4ResolveModuleAndSymbol(moduleName, symbolName, module, symbol);
 }
 
 PS4ResolveHandler ps4ResolveSetErrorHandler(PS4ResolveHandler handler)
