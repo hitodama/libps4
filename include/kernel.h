@@ -4,10 +4,9 @@
 #include "stddef.h"
 #include "sys/types.h"
 
-int sceKernelAllocateDirectMemory(off_t searchStart, off_t searchEnd, size_t length, size_t alignment, int type, off_t *physicalAddressDestination);
+/* useless C / POSIX wrappers */
 int sceKernelGetCurrentCpu(void);
 int sceKernelGettimeofday(SceKernelTimeval *tp);
-int sceKernelMapDirectMemory(void **addr, size_t length, int protection, int flags, off_t start, size_t alignment);
 int sceKernelUsleep(unsigned int microseconds);
 int scePthreadCancel(ScePthread thread);
 int scePthreadCreate(ScePthread *thread, const ScePthreadAttr *attr, void *(*entry)(void *), void *arg, const char *name);
@@ -25,6 +24,11 @@ unsigned int sceKernelSleep(unsigned int seconds);
 void scePthreadExit(void *value);
 void scePthreadYield(void);
 
+/* more interresting wrappers */
+int sceKernelAllocateDirectMemory(off_t searchStart, off_t searchEnd, size_t length, size_t alignment, int type, off_t *physicalAddressDestination);
+int sceKernelMapDirectMemory(void **addr, size_t length, int protection, int flags, off_t start, size_t alignment);
+
+/* sce own syscall wrappers (usefull) */
 int sceKernelLoadStartModule(const char *name, size_t argc, const void *argv, uint32_t flags, void *, int *result);
 int sceKernelDlsym(SceKernelModule handle, const char *symbol, void **address);
 int sceKernelGetModuleList(SceKernelModule *array, size_t size, size_t *available);

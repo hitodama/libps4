@@ -447,16 +447,120 @@
 #define	SYS_rctl_remove_rule	529
 #define	SYS_posix_fallocate	530
 
-/* wrapper names, provide to enable easy switching */
+/* SCE system calls */
+
+//#define SYS_evf_wait ...?
+//#define SYS_dynlib_relocate_initial_image ...?
+
+/* 531 */
+#define	SYS_regmgr_call	532
+#define	SYS_jitshm_create	533
+#define	SYS_jitshm_alias	534
+/* 535 */
+/* 536 */
+/* 537 */
+/* 538 */
+#define	SYS_evf_delete	539
+
+
+/* 540 */
+#define	SYS_evf_close 541
+/* 542 */
+/* 543 */
+#define	SYS_evf_set	544
+#define	SYS_evf_clear	545
+#define	SYS_evf_cancel	546
+#define	SYS_query_memory_protection	547
+/* 548 */
+/* 549 */
+
+#define	SYS_osem_delete	550
+/* 551 */
+#define	SYS_osem_close	552
+/* 553 */
+/* 554 set */
+/* 555 clear */
+#define	SYS_osem_cancel	556
+/* 557 */
+#define	SYS_namedobj_delete	558
+#define	SYS_set_vm_container   	559
+
+/* 560 */
+/* 561 */
+/* 562 */
+/* 563 */
+/* 564 */
+/* 565 */
+/* 566 */
+#define	SYS_opmc_get_ctr	567
+/* 568 */
+/* 569 */
+
+/* 570 */
+/* 571 */
+#define	SYS_virtual_query	572
+/* 573 */
+#define	SYS_sblock_create	574
+#define	SYS_sblock_delete	575
+#define	SYS_sblock_enter	576
+#define	SYS_sblock_exit	577
+/* 578 */
+/* 579 */
+
+/* 580 */
+#define	SYS_eport_delete	581
+#define	SYS_eport_trigger	582
+/* 583 */
+#define	SYS_eport_close	584
+/* 585 */
+#define	SYS_dmem_container	586
+#define	SYS_get_authinfo	587
+/* 588 */
+/* 589 */
+
+/* 590 */
+#define	SYS_dlsym	591 // recheck, clashes std C dlsym in direct call mode
+#define SYS_dynlib_get_list	592
+/* 593 */
+/* 594 */
+#define SYS_dynlib_unload_prx	595
+#define SYS_dynlib_do_copy_relocations	596
+#define SYS_dynlib_prepare_dlclose	597
+/* 598 */
+#define SYS_dynlib_process_needed_and_relocate	599
+
+/* 600 */
+/* 601 */
+#define	SYS_randomized_path	602
+#define	SYS_rdup	603
+/* 604 */
+/* 605 */
+/* 606 */
+#define	SYS_get_self_auth_info	607
+/* 608 */
+/* 609 */
+
+/* 610 */
+/* 611 */
+/* 612 */
+/* 613 */
+/* 614 */
+#define	SYS_get_resident_fmem_count	615
+#define	SYS_thr_get_name	616
+#define	SYS_set_gpo	617
+
+#define	SYS_MAXSYSCALL	617
+
+/* SCE C wrapper names */
+/* provide to enable switching between wrapped and direct call mode */
+
+// unchecked
+//#define	sceKernelJitCreateSharedMemory	533
+//#define	sceKernelJitCreateAliasOfSharedMemory	534
+//#define	sceKernelJitMapSharedMemory 535 ?!?
 
 #define	SYS_sceKernelDlsym	591
 #define	SYS_sceKernelGetModuleList	592
 #define	SYS_sceKernelGetModuleInfo	593
-//#_define	SYS_sceKernelLoadStartModule 594 ?!?
-#define	SYS_sceKernelStopUnloadModule 595
-
-/* true names */
-
-#define	SYS_dlsym   591 // find and add "real" names
-
-#define	SYS_MAXSYSCALL	532 // change me
+//#_define	SYS_sceKernelLoadStartModule 594 ?!? arg missmatch
+#define	SYS_sceKernelStopUnloadModule	595
