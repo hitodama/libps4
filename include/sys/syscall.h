@@ -450,7 +450,6 @@
 /* SCE system calls */
 
 //#define SYS_evf_wait ...?
-//#define SYS_dynlib_relocate_initial_image ...?
 
 /* 531 */
 #define	SYS_regmgr_call	532
@@ -461,7 +460,6 @@
 /* 537 */
 /* 538 */
 #define	SYS_evf_delete	539
-
 
 /* 540 */
 #define	SYS_evf_close 541
@@ -478,8 +476,8 @@
 /* 551 */
 #define	SYS_osem_close	552
 /* 553 */
-/* 554 set */
-/* 555 clear */
+/* 554 */
+/* 555 */
 #define	SYS_osem_cancel	556
 /* 557 */
 #define	SYS_namedobj_delete	558
@@ -488,10 +486,10 @@
 /* 560 */
 /* 561 */
 /* 562 */
-/* 563 */
-/* 564 */
-/* 565 */
-/* 566 */
+#define	SYS_opmc_enable	563
+#define	SYS_opmc_disable	564
+#define	SYS_opmc_set_ctl	565
+#define	SYS_opmc_set_ctr	566
 #define	SYS_opmc_get_ctr	567
 /* 568 */
 /* 569 */
@@ -515,11 +513,11 @@
 /* 585 */
 #define	SYS_dmem_container	586
 #define	SYS_get_authinfo	587
-/* 588 */
+#define	SYS_mname	588
 /* 589 */
 
-/* 590 */
-#define	SYS_dlsym	591 // recheck, clashes std C dlsym in direct call mode
+#define	SYS_dynlib_dlclose	590 // or SYS_dlclose
+#define	SYS_dynlib_dlsym	591 //SYS_dlsym	591 // recheck, clashes std C dlsym in direct call mode
 #define SYS_dynlib_get_list	592
 /* 593 */
 /* 594 */

@@ -12,7 +12,7 @@ ps4Kerncall:
 	# Be aware that direct mode does not set errno
 	# "neg %rax" would work too - but break more
 	movq $-1, %rax
-ps4KerncallR:
-	ret
+	ps4KerncallR:
+		ret
 .size ps4Kerncall, .-ps4Kerncall
 .popsection

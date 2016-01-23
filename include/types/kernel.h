@@ -32,3 +32,5 @@ typedef void *ScePthreadAttr;
 typedef void *ScePthreadMutex;
 typedef void *ScePthreadMutexattr;
 typedef uint32_t SceKernelModule;
+
+typedef int SceKernelEqueue;
