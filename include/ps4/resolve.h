@@ -10,11 +10,24 @@ typedef enum
 	PS4ResolveStatusKernelLoadError = -11,
 	PS4ResolveStatusLSMResolveError = -12,
 	PS4ResolveStatusModuleLoadError = -13,
-	PS4ResolveStatusFunctionResolveError = -14
+	PS4ResolveStatusFunctionResolveError = -14,
+	PS4ResolveStatusKernelFunctionResolveError = -15
 }
 PS4ResolveStatus;
 
-typedef PS4ResolveStatus (*PS4ResolveHandler)(char *moduleName, char *symbolName, int *module, void **symbol, PS4ResolveStatus state);
+typedef struct
+{
+	char *module;
+	char *symbol;
+	int *moduleId;
+	void **address;
+	void **kernelAddress;
+	int isKernel;
+	PS4ResolveStatus status;
+}
+PS4ResolveState;
+
+typedef PS4ResolveStatus (*PS4ResolveHandler)(PS4ResolveState *state);
 
 PS4ResolveHandler ps4ResolveSetErrorHandler(PS4ResolveHandler handler);
 PS4ResolveHandler ps4ResolveSetPreHandler(PS4ResolveHandler handler);

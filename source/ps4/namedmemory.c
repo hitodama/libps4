@@ -12,13 +12,13 @@
 
 typedef struct PS4NamedMemory
 {
-	void *memory;
+	void *address;
 	size_t size;
 	char *path;
 }
 PS4NamedMemory;
 
-enum{ PS4NamedMemoryPageSize = 16 * 1024 };
+// This allows for stable webbrowser reopen and ipc memory
 
 //FIXME: Implement Refcount and/or seperate unlink/close ?
 PS4NamedMemory *ps4NamedMemoryOpen(const char *path, size_t size)
@@ -29,9 +29,6 @@ PS4NamedMemory *ps4NamedMemoryOpen(const char *path, size_t size)
 	size_t fileSize;
 	long pageSize = sysconf(_SC_PAGESIZE);
 	size_t l = strnlen(path, 255);
-
-	if(pageSize < 0)
-		pageSize = PS4NamedMemoryPageSize;
 
 	memory = (PS4NamedMemory *)malloc(sizeof(PS4NamedMemory));
 	if(memory == NULL)
@@ -60,11 +57,12 @@ PS4NamedMemory *ps4NamedMemoryOpen(const char *path, size_t size)
 	else
 		memory->size = ((size - 1) / pageSize + 1) * pageSize;
 
-	if(memory->size > fileSize && ftruncate(handle, memory->size) < 0)
-		goto shmopen;
+	if(memory->size > fileSize)
+		if(ftruncate(handle, memory->size) < 0)
+			goto shmopen;
 
-	memory->memory = mmap(NULL, memory->size, PROT_READ | PROT_WRITE, MAP_FILE | MAP_SHARED, handle, 0);
-	if(memory->memory == MAP_FAILED)
+	memory->address = mmap(NULL, memory->size, PROT_READ | PROT_WRITE, MAP_FILE | MAP_SHARED, handle, 0);
+	if(memory->address == MAP_FAILED)
 		goto shmopen;
 
 	close(handle);
@@ -88,7 +86,7 @@ int ps4NamedMemoryClose(PS4NamedMemory *memory)
 	if(memory == NULL)
 		return -1;
 	//r |= shm_unlink(memory->path);
-	r |= munmap(memory->memory, memory->size);
+	r |= munmap(memory->address, memory->size);
 	free(memory->path);
 	free(memory);
 	return r;
@@ -104,11 +102,11 @@ int ps4NamedMemoryUnlink(PS4NamedMemory *memory)
 	return r;
 }
 
-void *ps4NamedMemoryMemory(PS4NamedMemory *memory)
+void *ps4NamedMemoryAddress(PS4NamedMemory *memory)
 {
 	if(memory == NULL)
 		return NULL;
-	return memory->memory;
+	return memory->address;
 }
 
 size_t ps4NamedMemorySize(PS4NamedMemory *memory)

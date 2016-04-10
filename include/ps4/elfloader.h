@@ -163,6 +163,8 @@ ElfSegment *elfSegment(Elf *elf, uint16_t *index, ElfSegmentAttribute attribute,
 uint64_t elfDynamicAttribute(ElfDynamic *elfDynamic, ElfDynamicAttribute attribute);
 ElfDynamic *elfDynamics(Elf *elf, uint16_t *size, uint16_t *length);
 ElfDynamic *elfDynamic(Elf *elf, uint16_t *index, ElfDynamicAttribute attribute, uint64_t value);
+ElfDynamic *elfLoadedDynamics(Elf *elf, uint16_t *size, uint16_t *length);
+ElfDynamic *elfLoadedDynamic(Elf *elf, uint16_t *index, ElfDynamicAttribute attribute, uint64_t value);
 
 /* specifics (if exists) */
 
@@ -193,6 +195,8 @@ uint8_t elfSymbolBind(uint8_t info);
 /* --- actions */
 
 Elf *elfCreate(void *data, uint64_t size);
+Elf *elfCreateLocal(void *elfl, void *data, size_t size);
+Elf *elfCreateLocalUnchecked(void *elfl, void *data, size_t size);
 void *elfDestroy(Elf *elf);
 void elfDestroyAndFree(Elf *elf);
 

@@ -1,8 +1,14 @@
 #include <stddef.h>
+#include <stdarg.h>
 
-#include "ps4/resolve.h"
-#include "ps4/inline.h"
-#include "ps4/internal/resolve.h"
+#include <ps4/internal/stub.h>
+#include <ps4/internal/kerncall.h>
+
+#include <ps4/inline.h>
+#include <ps4/kernel.h>
+
+#include <ps4/internal/resolve.h>
+#include <ps4/resolve.h>
 
 long ps4ResolveSyscall(long n, ...);
 PS4SyscallNamed(ps4ResolveSyscall, 0)
@@ -12,83 +18,147 @@ static volatile PS4ResolveHandler ps4ResolvePreHandler;
 static volatile PS4ResolveHandler ps4ResolvePostHandler;
 
 /* inline */
-PS4Inline PS4ResolveStatus ps4ResolveCallHandler(PS4ResolveHandler handler, char *moduleName, char *symbolName, int *module, void **symbol, PS4ResolveStatus state)
+PS4Inline PS4ResolveStatus ps4ResolveCallHandler(PS4ResolveHandler handler, PS4ResolveState *state, PS4ResolveStatus status)
 {
+	state->status = status;
 	if(handler != NULL)
-		state = handler(moduleName, symbolName, module, symbol, state);
-	return state;
+		status = handler(state);
+	return status;
 }
 
-PS4ResolveStatus ps4ResolveModuleAndSymbol(char *moduleName, char *symbolName, int *module, void **symbol)
+#ifdef DEBUG
+int ps4ResolveEarlyPrintf(const char *format, ...)
+{
+	static int (*vpf)(const char *format, ...);
+	int r;
+	va_list args;
+
+	va_start(args, format);
+
+	if(vpf == NULL)
+	{
+		int c = 0;
+		ps4ResolveSyscall(594, "libSceLibcInternal.sprx", 0, &c, 0);
+		ps4ResolveSyscall(591, c, "vprintf", &vpf);
+	}
+
+	r = vpf(format, args);
+	va_end(args);
+	return r;
+}
+#endif
+
+// this is a dirty monolith to reduce stub sizes
+PS4ResolveStatus ps4ResolveModuleAndSymbolOrKernelSymbol(char *module, char *symbol, int *moduleId, void **address, void **kernelAddress)
 {
 	static int (*lsm)(const char *name, size_t argc, const void *argv, unsigned int flags, int a, int b) = NULL;
-	int state;
 
-	if((state = ps4ResolveCallHandler(ps4ResolvePreHandler, moduleName, symbolName, module, symbol, PS4ResolveStatusInterceptContinue)) != PS4ResolveStatusInterceptContinue)
-		return state;
+	PS4ResolveStatus status;
+	PS4ResolveState state;
 
-	if(module == NULL || symbol == NULL || moduleName == NULL || symbolName == NULL)
-		if((state = ps4ResolveCallHandler(ps4ResolveErrorHandler, moduleName, symbolName, module, symbol, PS4ResolveStatusArgumentError)) != PS4ResolveStatusInterceptContinue)
-			return state;
+	state.module = module;
+	state.symbol = symbol;
+	state.moduleId = moduleId;
+	state.address = address;
+	state.kernelAddress = kernelAddress;
+	state.isKernel = ps4KernelIsInKernel();
+	state.status = PS4ResolveStatusSuccess;
 
-	if(*module <= 0)
+	if((status = ps4ResolveCallHandler(ps4ResolvePreHandler, &state, PS4ResolveStatusInterceptContinue)) != PS4ResolveStatusInterceptContinue)
+		return status;
+
+	if(state.isKernel)
+	{
+		if(state.symbol == NULL || state.kernelAddress == NULL)
+			if((status = ps4ResolveCallHandler(ps4ResolveErrorHandler, &state, PS4ResolveStatusArgumentError)) != PS4ResolveStatusInterceptContinue)
+				return status;
+
+		*state.kernelAddress = ps4KernelDlSym(state.symbol);
+		if(*state.kernelAddress == NULL)
+			if((status = ps4ResolveCallHandler(ps4ResolveErrorHandler, &state, PS4ResolveStatusKernelFunctionResolveError)) != PS4ResolveStatusInterceptContinue)
+				return status;
+
+		if((status = ps4ResolveCallHandler(ps4ResolvePostHandler, &state, PS4ResolveStatusInterceptContinue)) != PS4ResolveStatusInterceptContinue)
+			return status;
+
+		return PS4ResolveStatusSuccess;
+	}
+
+	if(state.moduleId == NULL || state.address == NULL || state.module == NULL || state.symbol == NULL)
+		if((status = ps4ResolveCallHandler(ps4ResolveErrorHandler, &state, PS4ResolveStatusArgumentError)) != PS4ResolveStatusInterceptContinue)
+			return status;
+
+	if(*state.moduleId <= 0)
 	{
 		if(!lsm)
 		{
 			int k = 0;
 			ps4ResolveSyscall(594, "libkernel.sprx", 0, &k, 0);
 			if(k <= 0)
-				if((state = ps4ResolveCallHandler(ps4ResolveErrorHandler, moduleName, symbolName, module, symbol, PS4ResolveStatusKernelLoadError)) != PS4ResolveStatusInterceptContinue)
-					return state;
+				if((status = ps4ResolveCallHandler(ps4ResolveErrorHandler, &state, PS4ResolveStatusKernelLoadError)) != PS4ResolveStatusInterceptContinue)
+					return status;
 			if(ps4ResolveSyscall(591, k, "sceKernelLoadStartModule", (void **)&lsm) != 0)
-				if((state = ps4ResolveCallHandler(ps4ResolveErrorHandler, moduleName, symbolName, module, symbol, PS4ResolveStatusLSMResolveError)) != PS4ResolveStatusInterceptContinue)
-					return state;
+				if((status = ps4ResolveCallHandler(ps4ResolveErrorHandler, &state, PS4ResolveStatusLSMResolveError)) != PS4ResolveStatusInterceptContinue)
+					return status;
 		}
-		*module = lsm(moduleName, 0, NULL, 0, 0, 0);
-		if(*module <= 0)
-			if((state = ps4ResolveCallHandler(ps4ResolveErrorHandler, moduleName, symbolName, module, symbol, PS4ResolveStatusModuleLoadError)) != PS4ResolveStatusInterceptContinue)
-				return state;
+		*state.moduleId = lsm(state.module, 0, NULL, 0, 0, 0);
+		if(*state.moduleId <= 0)
+			if((status = ps4ResolveCallHandler(ps4ResolveErrorHandler, &state, PS4ResolveStatusModuleLoadError)) != PS4ResolveStatusInterceptContinue)
+				return status;
 	}
 
-	if(ps4ResolveSyscall(591, *module, symbolName, symbol) != 0)
-		if((state = ps4ResolveCallHandler(ps4ResolveErrorHandler, moduleName, symbolName, module, symbol, PS4ResolveStatusFunctionResolveError)) != PS4ResolveStatusInterceptContinue)
-			return state;
+	if(ps4ResolveSyscall(591, *state.moduleId, state.symbol, state.address) != 0)
+		if((status = ps4ResolveCallHandler(ps4ResolveErrorHandler, &state, PS4ResolveStatusFunctionResolveError)) != PS4ResolveStatusInterceptContinue)
+			return status;
 
-	if((state = ps4ResolveCallHandler(ps4ResolvePostHandler, moduleName, symbolName, module, symbol, PS4ResolveStatusInterceptContinue)) != PS4ResolveStatusInterceptContinue)
-		return state;
+	if((status = ps4ResolveCallHandler(ps4ResolvePostHandler, &state, PS4ResolveStatusInterceptContinue)) != PS4ResolveStatusInterceptContinue)
+		return status;
 
 	return PS4ResolveStatusSuccess;
 }
 
-PS4ResolveStatus ps4ResolvePostIntercept(char *moduleName, char *symbolName, int *module, void **symbol, PS4ResolveStatus state)
-{
-	return PS4ResolveStatusInterceptFailure;
-}
-
-// alter if ps4ResolveModuleAndSymbol changes
+// keep in sync with stubs layout
 PS4ResolveStatus ps4Resolve(void *function)
 {
-	unsigned char *b = (unsigned char *)function;
+	char *module = NULL;
+	char *symbol = NULL;
+	int *moduleId = NULL;
+	void **address = NULL;
+	void **kernelAddress = NULL;
 
-	char *moduleName = *(char **)(b + 30);
-	char *symbolName = *(char **)(b + 40);
-	int *module = (int *)(*(int **)(b + 50));
-	void **symbol = (void **)(*(void ***)(b + 60));
+	unsigned char *f = (unsigned char *)function;
 
-	/*
- 		check arbitrary bytes
-		0:  49 89 c3 mov %rax,%r11
-		13: 49 93    xchg %rax,%r11
-		15: 4d 85 db test %r11,%r11
-		= function
-		kept below 15 to not overflow the size of syscalls ...
-	*/
-	if(*(b + 0) != 0x49 || *(b + 1) != 0x89 || *(b + 2) != 0xc3 ||
-		*(b + 13) != 0x49 || *(b + 14) != 0x93 ||
-		*(b + 15) != 0x4d) // || *(b + 16) != 0x85 || *(b + 17) != 0xdb)
+	if(f[0] != 0xa8) // unlikely to be first
 		return PS4ResolveStatusFunctionResolveError;
 
-	return ps4ResolveModuleAndSymbol(moduleName, symbolName, module, symbol);
+	switch(f[1])
+	{
+		case 0x00: // PS4FunctionStub
+			module = *(char **)(f + 32);
+			symbol = *(char **)(f + 42);
+			moduleId = *(int **)(f + 52);
+			address = *(void ***)(f + 62);
+			break;
+		case 0x01: // PS4KernelFunctionStub
+			symbol = *(char **)(f + 32);
+			kernelAddress = *(void ***)(f + 42);
+			break;
+		case 0x02: // PS4FunctionAndKernelFunctionStub
+			module = *(char **)(f + 64);
+			symbol = *(char **)(f + 74);
+			moduleId = *(int **)(f + 84);
+			address = *(void ***)(f + 94);
+			kernelAddress = *(void ***)(f + 104);
+			break;
+		case 0x03: // PS4SyscallAndKernelFunctionStub
+		case 0x04:  // PS4SyscallStub
+			return PS4ResolveStatusSuccess;
+			break;
+		default:
+			return PS4ResolveStatusFunctionResolveError;
+	}
+
+	return ps4ResolveModuleAndSymbolOrKernelSymbol(module, symbol, moduleId, address, kernelAddress);
 }
 
 PS4ResolveHandler ps4ResolveSetErrorHandler(PS4ResolveHandler handler)

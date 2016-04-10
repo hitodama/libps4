@@ -17,8 +17,6 @@ typedef struct PS4ProtectedMemory
 }
 PS4ProtectedMemory;
 
-enum{ PS4ProtectedMemoryPageSize = 16 * 1024 };
-
 PS4ProtectedMemory *ps4ProtectedMemoryCreate(size_t size)
 {
 	int executableHandle, writableHandle;
@@ -27,9 +25,6 @@ PS4ProtectedMemory *ps4ProtectedMemoryCreate(size_t size)
 
 	if(size == 0)
 		return NULL;
-
-	if(pageSize < 0)
-		pageSize = PS4ProtectedMemoryPageSize;
 
 	memory = (PS4ProtectedMemory *)malloc(sizeof(PS4ProtectedMemory));
 	if(memory == NULL)
@@ -79,14 +74,14 @@ int ps4ProtectedMemoryDestroy(PS4ProtectedMemory *memory)
 	return r;
 }
 
-void *ps4ProtectedMemoryWritable(PS4ProtectedMemory *memory)
+void *ps4ProtectedMemoryWritableAddress(PS4ProtectedMemory *memory)
 {
 	if(memory == NULL)
 		return NULL;
 	return memory->writable;
 }
 
-void *ps4ProtectedMemoryExecutable(PS4ProtectedMemory *memory)
+void *ps4ProtectedMemoryExecutableAddress(PS4ProtectedMemory *memory)
 {
 	if(memory == NULL)
 		return NULL;

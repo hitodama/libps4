@@ -562,3 +562,6 @@
 #define	SYS_sceKernelGetModuleInfo	593
 //#_define	SYS_sceKernelLoadStartModule 594 ?!? arg missmatch
 #define	SYS_sceKernelStopUnloadModule	595
+
+/* libps4 hooked syscalls */
+#define SYS_ps4_kernel_execute 172

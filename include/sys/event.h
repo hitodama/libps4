@@ -29,7 +29,7 @@
 #ifndef _SYS_EVENT_H_
 #define _SYS_EVENT_H_
 
-#include <sys/queue.h>
+#include <sys/queue.h> 
 
 #define EVFILT_READ		(-1)
 #define EVFILT_WRITE		(-2)
@@ -170,7 +170,7 @@ MALLOC_DECLARE(M_KQUEUE);
 #define NOTE_SIGNAL	0x08000000
 
 /*
- * Hint values for the optional f_touch event filter.  If f_touch is not set
+ * Hint values for the optional f_touch event filter.  If f_touch is not set 
  * to NULL and f_isfd is zero the f_touch filter will be called with the type
  * argument set to EVENT_REGISTER during a kevent() system call.  It is also
  * called under the same conditions with the type argument set to EVENT_PROCESS
@@ -215,7 +215,7 @@ struct knote {
 		struct		file *p_fp;	/* file data pointer */
 		struct		proc *p_proc;	/* proc pointer */
 		struct		aiocblist *p_aio;	/* AIO job pointer */
-		struct		aioliojob *p_lio;	/* LIO job pointer */
+		struct		aioliojob *p_lio;	/* LIO job pointer */ 
 	} kn_ptr;
 	struct			filterops *kn_fop;
 	void			*kn_hook;

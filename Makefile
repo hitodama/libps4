@@ -12,8 +12,12 @@ ifdef LIBPS4CFLAGS
 LibPS4Flags := $(LIBPS4CFLAGS)
 endif
 
-#LibPS4Flags ?= -D"LibPS4SyscallWrapped"
-LibPS4Flags ?= -D"LibPS4SyscallDirect"
+#-D"LibPS4SyscallWrapped"
+#-D"LibPS4SyscallDirect"
+#-D"LibPS4KernelAndUser"
+#-D"LibPS4KernelOnly"
+#-D"LibPS4KernelNone"
+LibPS4Flags ?= -D"LibPS4SyscallWrapped" -D"LibPS4KernelAndUser"
 
 ###################################
 
@@ -34,12 +38,20 @@ endif
 
 endef
 
-#generate <module> <header> <fsym> <fssym> <ssym>
+#generate <module> <header> <fsym> <fssym> <ssym> <fksym> <fsksym> <sksym>
 define generate
 $(call generateTarget, module, $(1), $(2), $(2))
 $(foreach i, $(3), $(call generateTarget, function, $(1), $(i), $(2)))
 $(foreach i, $(4), $(call generateTarget, functionOrSyscall, $(1), $(i), $(2)))
-$(foreach i, $(5), $(call generateTarget, syscall, $(1), $(i), $(2)))
+$(foreach i, $(5), $(call generateTarget, functionAndKernelFunction, $(1), $(i), $(2)))
+$(foreach i, $(6), $(call generateTarget, functionOrSyscallAndKernelFunction, $(1), $(i), $(2)))
+
+endef
+
+
+#generateKernel <type> <sym>
+define generateNonModule
+$(foreach i, $(2), $(call generateTarget, $(1), nomodule, $(i), ps4/kernel))
 
 endef
 

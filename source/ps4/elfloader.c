@@ -26,7 +26,7 @@ enum{ ElfMaximalStringLength = 4096 };
 
 /* Type */
 
-typedef struct Elf
+typedef struct Elf // FIXME: We could cache a lot of offsets here to inc. performance
 {
 	uint8_t *data;
 	size_t size; // FIXME: Do more checks on size
@@ -304,6 +304,15 @@ uint64_t elfDynamicAttribute(ElfDynamic *elfDynamic, ElfDynamicAttribute attribu
 	return 0;
 }
 
+uint16_t elfDynamicsLength(ElfDynamic *dyn)
+{
+	uint16_t i = 0;
+	if(dyn != NULL)
+		for(;dyn->d_tag != DT_NULL; ++dyn)
+			++i;
+	return i;
+}
+
 ElfDynamic *elfDynamics(Elf *elf, uint16_t *size, uint16_t *length)
 {
 	ElfSection *h;
@@ -321,12 +330,12 @@ ElfDynamic *elfDynamics(Elf *elf, uint16_t *size, uint16_t *length)
 
 		return (ElfDynamic *)(elf->data + h->sh_offset);
 	}
-	else if((h2 = elfSegment(elf, NULL, ElfSegmentAttributeType, SHT_DYNAMIC)))
+	else if((h2 = elfSegment(elf, NULL, ElfSegmentAttributeType, PT_DYNAMIC)))
 	{
 		if(size != NULL)
 			*size = sizeof(ElfDynamic);
-		if(length != NULL)
-			*length = h2->p_filesz / sizeof(ElfDynamic);
+		if(length != NULL) //h2->p_filesz / sizeof(ElfDynamic);
+			*length = elfDynamicsLength((ElfDynamic *)(elf->data + h2->p_offset));
 
 		return (ElfDynamic *)(elf->data + h2->p_offset);
 	}
@@ -345,6 +354,62 @@ ElfDynamic *elfDynamic(Elf *elf, uint16_t *index, ElfDynamicAttribute attribute,
  		index = &i;
 
 	h = elfDynamics(elf, &size, &length);
+
+	if(!h)
+		return NULL;
+
+	for(; *index < length; ++(*index))
+	{
+		t = (ElfDynamic *)((uint8_t *)h + *index * size);
+		if(attribute == ElfDynamicAttributeNone || elfDynamicAttribute(t, attribute) == value)
+			return t;
+	}
+
+	return NULL;
+}
+
+ElfDynamic *elfLoadedDynamics(Elf *elf, uint16_t *size, uint16_t *length)
+{
+	//ElfSection *h;
+	ElfSegment *h2;
+
+	if(!elf)
+		return NULL;
+
+	/*if((h = elfSection(elf, NULL, ElfSectionAttributeType, SHT_DYNAMIC)))
+	{
+		if(size != NULL)
+			*size = h->sh_entsize;
+		if(length != NULL)
+			*length = h->sh_size / h->sh_entsize;
+
+		return (ElfDynamic *)h->sh_addr;
+	}
+	else */
+	if((h2 = elfSegment(elf, NULL, ElfSegmentAttributeType, PT_DYNAMIC)))
+	{
+		if(size != NULL)
+			*size = sizeof(ElfDynamic);
+		if(length != NULL)
+			*length = elfDynamicsLength((ElfDynamic *)h2->p_vaddr);
+
+		return (ElfDynamic *)h2->p_vaddr;
+	}
+
+	return NULL;
+}
+
+ElfDynamic *elfLoadedDynamic(Elf *elf, uint16_t *index, ElfDynamicAttribute attribute, uint64_t value)
+{
+	uint16_t size;
+	uint16_t length;
+	ElfDynamic *h, *t;
+	uint16_t i = 0;
+
+	if(!index)
+ 		index = &i;
+
+	h = elfLoadedDynamics(elf, &size, &length);
 
 	if(!h)
 		return NULL;
@@ -576,6 +641,40 @@ Elf *elfCreate(void *data, size_t size)
 	return elf;
 }
 
+Elf *elfCreateLocal(void *elfl, void *data, size_t size)
+{
+	Elf *elf, t;
+
+	if(elfl == NULL || data == NULL)
+		return NULL;
+
+	t.data = data;
+	t.size = size;
+
+	if(!elfIsElf(&t))
+		return NULL;
+
+	elf = (Elf *)elfl;
+	elf->data = (uint8_t *)data;
+	elf->size = size;
+
+	return elf;
+}
+
+Elf *elfCreateLocalUnchecked(void *elfl, void *data, size_t size)
+{
+	Elf *elf;
+
+	if(elfl == NULL || data == NULL)
+		return NULL;
+
+	elf = (Elf *)elfl;
+	elf->data = (uint8_t *)data;
+	elf->size = size;
+
+	return elf;
+}
+
 void *elfDestroy(Elf *elf)
 {
 	void *data;
@@ -719,7 +818,9 @@ int elfLoaderRelocate(Elf *elf, void *writable, void *executable)
 	uint16_t dynamicSymbolsLength = 0;
 	ElfSymbol *dynamicSymbols;
 
-	char *rel[2] = {".rela.dyn", ".rela.plt"};
+	char *r1 = ".rela.dyn";
+	char *r2 = ".rela.plt";
+	char *rel[2] = {r1, r2};
 
 	if(elf == NULL)
 		return ElfLoaderReturnElfNull;
