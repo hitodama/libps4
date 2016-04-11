@@ -564,4 +564,4 @@
 #define	SYS_sceKernelStopUnloadModule	595
 
 /* libps4 hooked syscalls */
-#define SYS_ps4_kernel_execute 172
+#define SYS_ps4_kernel_run 172

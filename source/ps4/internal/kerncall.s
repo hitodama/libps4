@@ -4,7 +4,8 @@
 .global ps4Kerncall
 .type ps4Kerncall, @function
 ps4Kerncall:
-	movq $0x9263FFFF8, %r11
+	#movq $0x9263FFFF8, %r11
+	movq $0x93a4FFFF8, %r11
 	movq (%r11), %r11
 	movq %rcx, %r10
 	call *%r11
