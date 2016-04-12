@@ -1,7 +1,7 @@
 #pragma once
 
-#include "types/usbd.h"
-#include "sys/types.h"
+#include <types/usbd.h>
+#include <sys/types.h>
 
 int sceUsbdInit(void);
 void sceUsbdExit(void);

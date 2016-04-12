@@ -12,13 +12,14 @@ ps4CallbackSyscallPayload:
 	jz ps4CallbackSyscallPayloadOk
 	movq 8(%rsi), %rdi
 	movq 16(%rsi), %rsi
+	#movq 8(%rsi), %rsi
 	call *%r11
 	movq %rax, 0x380(%r15)
 	ps4CallbackSyscallPayloadOk:
 		xorq %rax, %rax
 	pop %r15
 	ret
-ps4CallbackSyscallPayloadEnd:
+.Lps4CallbackSyscallPayloadEnd:
 .size ps4CallbackSyscallPayload, .-ps4CallbackSyscallPayload
 
 .global ps4TruthFunctionPayload
@@ -26,7 +27,7 @@ ps4CallbackSyscallPayloadEnd:
 ps4TruthFunctionPayload:
 	mov $1, %rax
 	ret
-ps4TruthFunctionPayloadEnd:
+.Lps4TruthFunctionPayloadEnd:
 .size ps4TruthFunctionPayload, .-ps4TruthFunctionPayload
 
 .global ps4TrampolinePayload
@@ -34,7 +35,7 @@ ps4TruthFunctionPayloadEnd:
 ps4TrampolinePayload:
 	movabs $0, %rax
 	jmp *%rax
-ps4TrampolinePayloadEnd:
+.Lps4TrampolinePayloadEnd:
 .size ps4TrampolinePayload, .-ps4TrampolinePayload
 
 .popsection
@@ -44,19 +45,19 @@ ps4TrampolinePayloadEnd:
 .global ps4CallbackSyscallPayloadSize
 .type ps4CallbackSyscallPayloadSize, @object
 ps4CallbackSyscallPayloadSize:
-.int ps4CallbackSyscallPayloadEnd - ps4CallbackSyscallPayload
+.int .Lps4CallbackSyscallPayloadEnd - ps4CallbackSyscallPayload
 .size ps4CallbackSyscallPayloadSize, .-ps4CallbackSyscallPayloadSize
 
 .global ps4TruthFunctionPayloadSize
 .type ps4TruthFunctionPayloadSize, @object
 ps4TruthFunctionPayloadSize:
-.int ps4TruthFunctionPayloadEnd - ps4TruthFunctionPayload
+.int .Lps4TruthFunctionPayloadEnd - ps4TruthFunctionPayload
 .size ps4TruthFunctionPayloadSize, .-ps4TruthFunctionPayloadSize
 
 .global ps4TrampolinePayloadSize
 .type ps4TrampolinePayloadSize, @object
 ps4TrampolinePayloadSize:
-.int ps4TrampolinePayloadEnd - ps4TrampolinePayload
+.int .Lps4TrampolinePayloadEnd - ps4TrampolinePayload
 .size ps4TrampolinePayloadSize, .-ps4TrampolinePayloadSize
 
 .popsection

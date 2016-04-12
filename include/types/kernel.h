@@ -1,7 +1,7 @@
 #pragma once
 
-#include "stdint.h"
-#include "sys/time.h"
+#include <stdint.h>
+#include <sys/time.h>
 
 #ifndef MAP_TYPE
 	#define MAP_TYPE 0x0f
@@ -33,4 +33,4 @@ typedef void *ScePthreadMutex;
 typedef void *ScePthreadMutexattr;
 typedef uint32_t SceKernelModule;
 
-typedef int SceKernelEqueue;
+typedef int SceKernelEqueue; // why should this not be a 32 bit fd?!?

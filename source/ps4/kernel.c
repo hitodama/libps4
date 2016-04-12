@@ -1,6 +1,5 @@
 #include <stdlib.h>
-#include <stdio.h>
-#include <errno.h>
+
 #include <unistd.h>
 #include <sys/syscall.h>
 
@@ -87,14 +86,23 @@ void ps4KernelExecutableMemoryFree(void *addr)
 	// once we got something better
 }
 
-int ps4KernelIsInKernel()
+int ps4KernelIsKernelAddress(void *addr)
 {
-	uint64_t isKernel;
-	__asm__ volatile("movq %%rsp, %0" : "=r"(isKernel));
-	return ((isKernel >> 48) > 0);
+	return ((uintptr_t)addr >> 48) > 0;
 }
 
-int ps4KernelRun(PS4RunnableMain fn, int argc, char **argv)
+int ps4KernelIsInKernel()
+{
+	void *sp;
+	__asm__ volatile("movq %%rsp, %0" : "=r"(sp));
+	return ps4KernelIsKernelAddress(sp);
+}
+
+//int ps4KernelRun(PS4RunnableSyscall fn, void *uap)
+
+//FIXME: Run should be replaced with ps4KernelRunMain
+// I will repurpose Run to a syscall-like signature after rewrite
+int ps4KernelRunMain(PS4RunnableMain fn, int argc, char **argv)
 {
 	if(ps4KernelIsInKernel())
 		return fn(argc, argv);
@@ -125,7 +133,7 @@ void *ps4KernelDlSym(char *name)
 	if(!ps4KernelIsInKernel())
 	{
 		char *argv[] = { NULL, name, NULL};
-		ps4KernelRun(ps4KernelDlSymWrapper, 2, argv);
+		ps4KernelRunMain(ps4KernelDlSymWrapper, 2, argv);
 		return (void *)argv[0];
 	}
 
@@ -146,71 +154,71 @@ void *ps4KernelDlSym(char *name)
 
 void ps4KernelUARTEnable()
 {
-	ps4KernelRun(ps4KernelExploitPayloadUARTEnable, 0, NULL);
+	ps4KernelRunMain(ps4KernelExploitPayloadUARTEnable, 0, NULL);
 }
 
 void ps4KernelGainRoot()
 {
-	ps4KernelRun(ps4KernelExploitPayloadGainRoot, 0, NULL);
+	ps4KernelRunMain(ps4KernelExploitPayloadGainRoot, 0, NULL);
 }
 
 void ps4KernelUnjail()
 {
-	ps4KernelRun(ps4KernelExploitPayloadUnjail, 0, NULL);
+	ps4KernelRunMain(ps4KernelExploitPayloadUnjail, 0, NULL);
 }
 
 void ps4KernelEscalatePrivileges()
 {
-	ps4KernelRun(ps4KernelExploitPayloadEscalatePrivileges, 0, NULL);
+	ps4KernelRunMain(ps4KernelExploitPayloadEscalatePrivileges, 0, NULL);
 }
 
 void *ps4KernelMalloc(size_t size)
 {
 	char *argv[] = {NULL, (char *)(uintptr_t)size, NULL};
-	ps4KernelRun(ps4KernelExploitPayloadMalloc, 2, argv);
+	ps4KernelRunMain(ps4KernelExploitPayloadMalloc, 2, argv);
 	return argv[0];
 }
 
 void ps4KernelFree(void *addr)
 {
 	char *argv[] = {(char *)addr, NULL};
-	ps4KernelRun(ps4KernelExploitPayloadFree, 1, argv);
+	ps4KernelRunMain(ps4KernelExploitPayloadFree, 1, argv);
 }
 
-void ps4KernelHookSyscall(int number, int argc, void *to)
+int ps4KernelHookSyscall(int number, int argc, void *to)
 {
 	char *argv[] = {(char *)(uintptr_t)number, (char *)(uintptr_t)argc, (char *)to, NULL};
-	ps4KernelRun(ps4KernelExploitPayloadHookSyscall, 2, argv);
+	return ps4KernelRunMain(ps4KernelExploitPayloadHookSyscall, 2, argv);
 }
 
-void ps4KernelHookFunction(void *from, void *to)
+int ps4KernelHookFunction(void *from, void *to)
 {
 	char *argv[] = {(char *)from, (char *)to, NULL};
-	ps4KernelRun(ps4KernelExploitPayloadHookFunction, 2, argv);
+	return ps4KernelRunMain(ps4KernelExploitPayloadHookFunction, 2, argv);
 }
 
 void ps4KernelPatchToTruthFunction(void *function)
 {
 	char *argv[] = {(char *)function, NULL};
-	ps4KernelRun(ps4KernelExploitPayloadPatchToTruthFunction, 1, argv);
+	ps4KernelRunMain(ps4KernelExploitPayloadPatchToTruthFunction, 1, argv);
 }
 
 /*
 void ps4KernelPeek(void *kern, void *user, size_t size)
 {
 	char *argv[] = {(char *)kern, (char *)user, (char *)(uintptr_t)size, NULL};
-	ps4KernelRun(ps4KernelExploitPayloadPeek, 3, argv);
+	ps4KernelRunMain(ps4KernelExploitPayloadPeek, 3, argv);
 }
 
 void ps4KernelPoke(void *kern, void *user, size_t size)
 {
 	char *argv[] = {(char *)kern, (char *)user, (char *)(uintptr_t)size, NULL};
-	ps4KernelRun(ps4KernelExploitPayloadPoke, 3, argv);
+	ps4KernelRunMain(ps4KernelExploitPayloadPoke, 3, argv);
 }
 */
 
 void ps4KernelMemcpy(void *dest, void *src, size_t size)
 {
 	char *argv[] = {(char *)dest, (char *)src, (char *)(uintptr_t)size, NULL};
-	ps4KernelRun(ps4KernelExploitPayloadMemcpy, 3, argv);
+	ps4KernelRunMain(ps4KernelExploitPayloadMemcpy, 3, argv);
 }

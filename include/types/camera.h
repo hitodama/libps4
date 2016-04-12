@@ -1,6 +1,6 @@
 #pragma once
 
-#include "stdint.h"
+#include <stdint.h>
 
 //from libSceCamera.sprx firmware 1.76. Other can change
 typedef struct SceCameraStartParameter

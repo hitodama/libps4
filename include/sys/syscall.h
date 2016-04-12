@@ -449,119 +449,96 @@
 
 /* SCE system calls */
 
-//#define SYS_evf_wait ...?
-
 /* 531 */
 #define	SYS_regmgr_call	532
 #define	SYS_jitshm_create	533
 #define	SYS_jitshm_alias	534
-/* 535 */
-/* 536 */
-/* 537 */
-/* 538 */
+#define	SYS_dl_get_list	535
+#define	sys_dl_get_info	536
+#define	SYS_dl_notify_event	537
+#define	SYS_evf_create	538
 #define	SYS_evf_delete	539
-
-/* 540 */
-#define	SYS_evf_close 541
-/* 542 */
-/* 543 */
+#define	SYS_evf_open	540
+#define	SYS_evf_close	541
+#define	SYS_evf_wait	542
+#define	SYS_evf_trywait	543
 #define	SYS_evf_set	544
 #define	SYS_evf_clear	545
 #define	SYS_evf_cancel	546
 #define	SYS_query_memory_protection	547
-/* 548 */
-/* 549 */
-
+#define	SYS_batch_map	548
+#define	SYS_osem_create	549
 #define	SYS_osem_delete	550
-/* 551 */
+#define	SYS_osem_open	551
 #define	SYS_osem_close	552
-/* 553 */
-/* 554 */
-/* 555 */
+#define	SYS_osem_wait	553
+#define	SYS_osem_trywait	554
+#define	SYS_osem_post	555
 #define	SYS_osem_cancel	556
-/* 557 */
+#define	SYS_namedobj_create	557
 #define	SYS_namedobj_delete	558
-#define	SYS_set_vm_container   	559
-
-/* 560 */
-/* 561 */
-/* 562 */
+#define	SYS_set_vm_container	559
+#define	SYS_sys_debug_init	560
+#define	SYS_suspend_process	561
+#define	SYS_resume_process	562
 #define	SYS_opmc_enable	563
 #define	SYS_opmc_disable	564
 #define	SYS_opmc_set_ctl	565
 #define	SYS_opmc_set_ctr	566
 #define	SYS_opmc_get_ctr	567
-/* 568 */
-/* 569 */
-
-/* 570 */
-/* 571 */
+#define	SYS_budget_create	568
+#define	SYS_budget_delete	569
+#define	SYS_budget_get	570
+#define	SYS_budget_set	571
 #define	SYS_virtual_query	572
-/* 573 */
+#define	SYS_mdbg_call	573
 #define	SYS_sblock_create	574
 #define	SYS_sblock_delete	575
 #define	SYS_sblock_enter	576
 #define	SYS_sblock_exit	577
-/* 578 */
-/* 579 */
-
-/* 580 */
+#define	SYS_sblock_xenter	578
+#define	SYS_sblock_xexit	579
+#define	SYS_eport_create	580
 #define	SYS_eport_delete	581
 #define	SYS_eport_trigger	582
-/* 583 */
+#define	SYS_eport_open	583
 #define	SYS_eport_close	584
-/* 585 */
+#define	SYS_is_in_sandbox	584
 #define	SYS_dmem_container	586
 #define	SYS_get_authinfo	587
 #define	SYS_mname	588
-/* 589 */
-
-#define	SYS_dynlib_dlclose	590 // or SYS_dlclose
-#define	SYS_dynlib_dlsym	591 //SYS_dlsym	591 // recheck, clashes std C dlsym in direct call mode
-#define SYS_dynlib_get_list	592
-/* 593 */
-/* 594 */
-#define SYS_dynlib_unload_prx	595
-#define SYS_dynlib_do_copy_relocations	596
-#define SYS_dynlib_prepare_dlclose	597
-/* 598 */
-#define SYS_dynlib_process_needed_and_relocate	599
-
-/* 600 */
-/* 601 */
+#define	SYS_dynlib_dlopen	589
+#define	SYS_dynlib_dlclose	590
+#define	SYS_dynlib_dlsym	591
+#define	SYS_dynlib_get_list	592
+#define	SYS_dynlib_get_info	593
+#define	SYS_dynlib_load_prx	594
+#define	SYS_dynlib_unload_prx	595
+#define	SYS_dynlib_do_copy_relocations	596
+#define	SYS_dynlib_prepare_dlclose	597
+#define	SYS_dynlib_get_proc_param	598
+#define	SYS_dynlib_process_needed_and_relocate	599
+#define	SYS_sandbox_path	600
+#define	SYS_mdbg_service	601
 #define	SYS_randomized_path	602
 #define	SYS_rdup	603
-/* 604 */
-/* 605 */
-/* 606 */
+#define	SYS_dl_get_metadata	604
+#define	SYS_workaround8849	605
+#define	SYS_is_development_mode	606
 #define	SYS_get_self_auth_info	607
-/* 608 */
-/* 609 */
-
-/* 610 */
-/* 611 */
-/* 612 */
-/* 613 */
-/* 614 */
+#define	SYS_dynlib_get_info_ex	608
+#define	SYS_budget_getid	609
+#define	SYS_budget_get_ptype	610
+#define	SYS_get_paging_stats_of_all_threads	611
+#define	SYS_get_proc_type_info	612
+#define	SYS_get_resident_count	613
+#define	SYS_prepare_to_suspend_process	614
 #define	SYS_get_resident_fmem_count	615
 #define	SYS_thr_get_name	616
 #define	SYS_set_gpo	617
 
 #define	SYS_MAXSYSCALL	617
 
-/* SCE C wrapper names */
-/* provide to enable switching between wrapped and direct call mode */
-
-// unchecked
-//#define	sceKernelJitCreateSharedMemory	533
-//#define	sceKernelJitCreateAliasOfSharedMemory	534
-//#define	sceKernelJitMapSharedMemory 535 ?!?
-
-#define	SYS_sceKernelDlsym	591
-#define	SYS_sceKernelGetModuleList	592
-#define	SYS_sceKernelGetModuleInfo	593
-//#_define	SYS_sceKernelLoadStartModule 594 ?!? arg missmatch
-#define	SYS_sceKernelStopUnloadModule	595
-
 /* libps4 hooked syscalls */
-#define SYS_ps4_kernel_run 172
+
+#define	SYS_ps4_kernel_run	172

@@ -3,6 +3,6 @@
 
 #include <ps4/resolve.h>
 
-PS4ResolveStatus ps4ResolveModuleAndSymbolOrKernelSymbol(char *module, char *symbol, int *moduleId, void **address, void **kernelAddress);
+PS4ResolveStatus ps4ResolveModuleAndSymbolOrKernelSymbol(char *module, char *symbol, int *moduleId, void **userAddress, void **kernelAddress, void *function);
 
 #endif /*LibPS4ResolveH*/

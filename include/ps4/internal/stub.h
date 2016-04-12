@@ -10,6 +10,18 @@
 
 #include <ps4/resolve.h>
 
+typedef enum
+{
+	PS4StubTypeFunction = 0,
+	PS4StubTypeKernelFunction = 1,
+	PS4StubTypeFunctionAndKernelFunction = 2,
+	PS4StubTypeSyscallAndKernelFunction = 3,
+	PS4StubTypeSyscall = 4
+}
+PS4StubType; // sync with stubs first mnemonic and resolve.c
+
+#define ps4StubType(fn) ((int)((char *)fn)[2])
+
 #ifndef PS4ModuleSymbol
 	#define PS4ModuleSymbol(name) \
 		name
@@ -113,7 +125,7 @@
 			.global "#function" \n \
 			.type "#function", @function \n \
 			"#function": \n \
-				test $0, %al \n \
+				test $0, %al #this is a two byte type marker, see resolve.c \n \
 				mov %rax, %r11 \n \
 				movabs "#functionAddress", %rax \n \
 				xchg %rax, %r11 \n \
@@ -126,6 +138,7 @@
 					movabs $"#functionName", %rsi \n \
 					movabs $"#moduleHandle", %rdx \n \
 					movabs $"#functionAddress", %rcx \n \
+					movabs $"#function", %r9 \n \
 					xor %rax, %rax \n \
 					call ps4ResolveModuleAndSymbolOrKernelSymbol \n \
 					mov %rax, %r11 \n \
@@ -139,6 +152,19 @@
 			.popsection \n \
 		");
 #endif
+
+/*
+				test %r11, %r11 \n \
+				jz .L"#function"R \n \
+					movq %rsp, %r11 \n \
+					shrq $48, %r11 \n \
+					test %r11, %r11 \n \
+					jz .L"#function"U \n \
+					jmp *%r11 \n \
+				.L"#function"U: \n \
+					kerncall
+				.L"#function"R:
+*/
 
 // if you call these in user mode you shoot yourself (could check)
 #ifndef PS4KernelFunctionStub
@@ -162,6 +188,7 @@
 					call ps4Pushall \n \
 					movabs $"#functionName", %rsi \n \
 					movabs $"#functionAddress", %r8 \n \
+					movabs $"#function", %r9 \n \
 					xor %rax, %rax \n \
 					call ps4ResolveModuleAndSymbolOrKernelSymbol \n \
 					mov %rax, %r11 \n \
@@ -180,10 +207,10 @@
 // if so, resolve and user kernel fn
 // otherwise use useland stuff
 #ifndef PS4FunctionAndKernelFunctionStub
-	#define PS4FunctionAndKernelFunctionStub(function, moduleName, functionName, moduleHandle, functionAddress, kernelFunctionAddress) \
-		PS4FunctionAndKernelFunctionStub_(function, moduleName, functionName, moduleHandle, functionAddress, kernelFunctionAddress)
+	#define PS4FunctionAndKernelFunctionStub(function, moduleName, functionName, moduleHandle, userFunctionAddress, kernelFunctionAddress) \
+		PS4FunctionAndKernelFunctionStub_(function, moduleName, functionName, moduleHandle, userFunctionAddress, kernelFunctionAddress)
 
-	#define PS4FunctionAndKernelFunctionStub_(function, moduleName, functionName, moduleHandle, functionAddress, kernelFunctionAddress) \
+	#define PS4FunctionAndKernelFunctionStub_(function, moduleName, functionName, moduleHandle, userFunctionAddress, kernelFunctionAddress) \
 		__asm__(" \
 			.pushsection .text \n \
 			.global "#function" \n \
@@ -195,7 +222,7 @@
 				shrq $48, %rax \n \
 				test %rax, %rax \n \
 				jnz .L"#function"K \n \
-					movabs "#functionAddress", %rax \n \
+					movabs "#userFunctionAddress", %rax \n \
 					xchg %rax, %r11 \n \
 					test %r11, %r11 \n \
 					jz .L"#function"R \n \
@@ -211,8 +238,9 @@
 					movabs $"#moduleName", %rdi \n \
 					movabs $"#functionName", %rsi \n \
 					movabs $"#moduleHandle", %rdx \n \
-					movabs $"#functionAddress", %rcx \n \
+					movabs $"#userFunctionAddress", %rcx \n \
 					movabs $"#kernelFunctionAddress", %r8 \n \
+					movabs $"#function", %r9 \n \
 					xor %rax, %rax \n \
 					call ps4ResolveModuleAndSymbolOrKernelSymbol \n \
 					mov %rax, %r11 \n \
@@ -255,6 +283,7 @@
 					call ps4Pushall \n \
 					movabs $"#functionName", %rdi \n \
 					movabs $"#functionAddress", %r8 \n \
+					movabs $"#function", %r9 \n \
 					xor %rax, %rax \n \
 					call ps4ResolveModuleAndSymbolOrKernelSymbol \n \
 					mov %rax, %r11 \n \
@@ -350,7 +379,7 @@
 	#define PS4Module(module)
 
 	#undef PS4Syscall
-	#define PS4Syscall(module, name)
+	#define PS4Syscall(module)
 
 	#undef PS4Function
 	#define PS4Function(module, name)

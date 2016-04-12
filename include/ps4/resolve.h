@@ -20,8 +20,9 @@ typedef struct
 	char *module;
 	char *symbol;
 	int *moduleId;
-	void **address;
+	void **userAddress;
 	void **kernelAddress;
+	void *function;
 	int isKernel;
 	PS4ResolveStatus status;
 }

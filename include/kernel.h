@@ -1,8 +1,8 @@
 #pragma once
 
-#include "types/kernel.h"
-#include "stddef.h"
-#include "sys/types.h"
+#include <types/kernel.h>
+#include <stddef.h>
+#include <sys/types.h>
 
 /* useless C / POSIX wrappers */
 int sceKernelGetCurrentCpu(void);

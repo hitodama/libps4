@@ -1,6 +1,6 @@
 #pragma once
 
-#include "stdint.h"
+#include <stdint.h>
 
 /* Grabbed from libusb (www.libusb.org) */
 
